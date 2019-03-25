@@ -61,6 +61,8 @@ double Antethetic(double &sd2,int NumberOfPaths,double alpha,
 {
     double FT,FT_2;
     double result=0.0;
+    double X_pos_avg = 0.0;
+    double X_neg_avg = 0.0;
     double initial_alpha = alpha;
     double initial_f0 = f0;
     double *myvector;
@@ -94,14 +96,23 @@ double Antethetic(double &sd2,int NumberOfPaths,double alpha,
         FT_2 = f0_2;
         myvector[i] = D*PayOff(FT, Strike);//1.1
         myvector2[i] = D*PayOff(FT_2,Strike);
+        X_pos_avg += myvector[i];
+        X_neg_avg += myvector2[i];
         result += (myvector[i]+myvector2[i])*0.5;
     }
+    X_pos_avg /= NumberOfPaths;
+    X_neg_avg /= NumberOfPaths;
     result = result/NumberOfPaths;
-    double temp=0.0;
+    double Var_Y = 0.0;
+    double Var_X = 0.0;
+    double Cov_XY = 0.0;
     for (int i=0;i<NumberOfPaths;i++)
     {
-        temp += (myvector[i]-result)*(myvector[i]-result);
+        Var_X += (myvector[i]-X_pos_avg)*(myvector[i]-X_pos_avg);
+        Var_Y += (myvector2[i]-X_neg_avg)*(myvector2[i]-X_neg_avg);
+        Cov_XY += (myvector[i]-X_pos_avg)*(myvector2[i]-X_neg_avg);
     }
+    double temp = Cov_XY + Var_Y;
     sd2 = sqrt(temp/(2*NumberOfPaths-1));
     delete [] myvector;
     delete [] myvector2;
